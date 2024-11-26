@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface PdfFileRepository extends JpaRepository<Pdf, Long> {
+public interface PdfRepository extends JpaRepository<Pdf, Long> {
     List<Pdf> findAllByCreatedTime(String createdAt);
 
 }

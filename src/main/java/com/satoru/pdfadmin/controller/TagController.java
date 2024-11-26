@@ -1,11 +1,7 @@
 package com.satoru.pdfadmin.controller;
 
-import com.satoru.pdfadmin.entity.Author;
-import com.satoru.pdfadmin.entity.PdfFile;
 import com.satoru.pdfadmin.entity.Tag;
-import com.satoru.pdfadmin.repository.PdfFileRepository;
 import com.satoru.pdfadmin.repository.TagRepository;
-import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;

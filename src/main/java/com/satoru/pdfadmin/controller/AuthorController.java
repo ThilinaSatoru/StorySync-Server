@@ -1,9 +1,7 @@
 package com.satoru.pdfadmin.controller;
 
 import com.satoru.pdfadmin.entity.Author;
-import com.satoru.pdfadmin.entity.PdfFile;
 import com.satoru.pdfadmin.repository.AuthorRepository;
-import com.satoru.pdfadmin.service.PdfNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;

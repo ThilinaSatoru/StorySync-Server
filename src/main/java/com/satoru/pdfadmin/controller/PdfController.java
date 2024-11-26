@@ -1,9 +1,9 @@
 package com.satoru.pdfadmin.controller;
 
 import com.satoru.pdfadmin.entity.Pdf;
-import com.satoru.pdfadmin.repository.PdfFileRepository;
-import com.satoru.pdfadmin.service.PdfFileService;
+import com.satoru.pdfadmin.repository.PdfRepository;
 import com.satoru.pdfadmin.service.PdfNotFoundException;
+import com.satoru.pdfadmin.service.PdfService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -13,22 +13,22 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController()
-@RequestMapping("/file")
+@RequestMapping("/api/pdf")
 @CrossOrigin(origins = "http://localhost:3000")
-public class PdfFileController {
-    private final PdfFileService fileService;
-    private final PdfFileRepository pdfFileRepository;
+public class PdfController {
+    private final PdfService fileService;
+    private final PdfRepository pdfRepository;
 
     @Autowired
-    public PdfFileController(PdfFileService fileService, PdfFileRepository pdfFileRepository) {
+    public PdfController(PdfService fileService, PdfRepository pdfRepository) {
         this.fileService = fileService;
-        this.pdfFileRepository = pdfFileRepository;
+        this.pdfRepository = pdfRepository;
     }
 
     // http://localhost:8080/file
     @GetMapping
-    public List<Pdf> getAllFiles() {
-        return fileService.getAllFiles();
+    public ResponseEntity<List<Pdf>> getAllFiles() {
+        return ResponseEntity.ok(fileService.getAllFiles());
     }
 
     // 2. GET - Fetch file by ID
@@ -41,14 +41,14 @@ public class PdfFileController {
     // http://localhost:8080/file/after?date=2024-11-18%2015:32:27
     @GetMapping("/after")
     public List<Pdf> getFilesCreatedAfter(@RequestParam("date") String date) {
-        return pdfFileRepository.findAllByCreatedTime(date);
+        return pdfRepository.findAllByCreatedTime(date);
     }
 
     // 4. POST - Create a new file
     // Endpoint: http://localhost:8080/file
     @PostMapping
     public ResponseEntity<Pdf> createFile(@RequestBody Pdf pdf) {
-        Pdf savedFile = pdfFileRepository.save(pdf);
+        Pdf savedFile = pdfRepository.save(pdf);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedFile);
     }
 
@@ -65,9 +65,9 @@ public class PdfFileController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Object> deleteFile(@PathVariable Long id) {
         System.out.println("Deleting.. : File " + id);
-        return pdfFileRepository.findById(id)
+        return pdfRepository.findById(id)
                 .map(file -> {
-                    pdfFileRepository.delete(file);
+                    pdfRepository.delete(file);
                     return ResponseEntity.noContent().build();
                 })
                 .orElse(ResponseEntity.notFound().build());

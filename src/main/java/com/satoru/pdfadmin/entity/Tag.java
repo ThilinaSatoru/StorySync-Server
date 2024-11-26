@@ -1,12 +1,9 @@
 package com.satoru.pdfadmin.entity;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.proxy.HibernateProxy;
 
 import java.util.Objects;
 import java.util.Set;
@@ -16,6 +13,7 @@ import java.util.Set;
 @ToString
 @RequiredArgsConstructor
 @AllArgsConstructor
+//@NoArgsConstructor
 @Entity
 @Table(name = "tags")
 public class Tag {
@@ -32,7 +30,11 @@ public class Tag {
 
     @ManyToMany(mappedBy = "tags", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JsonIgnore
-    private Set<PdfFile> pdfFiles;
+    private Set<Pdf> pdfs;
+
+    @ManyToMany(mappedBy = "tags", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JsonIgnore
+    private Set<Video> videos;
 
     @Override
     public boolean equals(Object o) {

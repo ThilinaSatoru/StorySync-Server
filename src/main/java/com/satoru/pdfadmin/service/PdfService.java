@@ -4,7 +4,7 @@ import com.satoru.pdfadmin.entity.Author;
 import com.satoru.pdfadmin.entity.Pdf;
 import com.satoru.pdfadmin.entity.Tag;
 import com.satoru.pdfadmin.repository.AuthorRepository;
-import com.satoru.pdfadmin.repository.PdfFileRepository;
+import com.satoru.pdfadmin.repository.PdfRepository;
 import com.satoru.pdfadmin.repository.TagRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,14 +15,14 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
-public class PdfFileService {
-    private final PdfFileRepository fileRepository;
+public class PdfService {
+    private final PdfRepository fileRepository;
     private final TagRepository tagRepository;
 
     private final AuthorRepository authorRepository;
 
     @Autowired
-    public PdfFileService(PdfFileRepository fileRepository, TagRepository tagRepository, AuthorRepository authorRepository) {
+    public PdfService(PdfRepository fileRepository, TagRepository tagRepository, AuthorRepository authorRepository) {
         this.fileRepository = fileRepository;
         this.tagRepository = tagRepository;
         this.authorRepository = authorRepository;

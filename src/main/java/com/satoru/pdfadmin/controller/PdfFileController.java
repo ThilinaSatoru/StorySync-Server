@@ -1,6 +1,5 @@
 package com.satoru.pdfadmin.controller;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
@@ -11,61 +10,31 @@ import org.springframework.web.bind.annotation.*;
 
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
 @RestController
 @RequestMapping("/api/pdf")
 @CrossOrigin(origins = "http://localhost:3000")
-public class PdfController {
+public class PdfFileController {
 
-//    private final String baseDirectory = "E:\\Downs\\kat\\kath\\";
-    @Value("${file.upload.root-dir}")
-    private String baseDirectory;
-
-    @GetMapping
-    public ResponseEntity<Resource> getPdf(@RequestParam("file") String file) {
+//    {{base_url}}/api/pdf/file?fileName=E%3A%5C%5CDowns%5C%5Cbase%5C%5Ccontent%5C%5Cpdf%5C%5Cmilf%5C%5CAluth%20Teacher%20Aunty.pdf
+    @GetMapping("/file")
+    public ResponseEntity<Resource> getPdf(@RequestParam("fileName") String fileName) {
         try {
             // Decode the file path
-            String decodedFilePath = URLDecoder.decode(file, StandardCharsets.UTF_8);
+            String decodedPath = URLDecoder.decode(fileName, StandardCharsets.UTF_8);
+            Path filePath = Paths.get(decodedPath);
+            Resource resource = new UrlResource(filePath.toUri());
 
-            // Ensure the file path is relative (remove leading '/')
-            if (decodedFilePath.startsWith("/")) {
-                decodedFilePath = decodedFilePath.substring(1);
-            }
-
-            // Construct the full path by resolving against the base directory
-            Path resolvedPath = Paths.get(baseDirectory).resolve(decodedFilePath).normalize();
-
-            // Ensure the resolved path is within the base directory for security
-            Path basePath = Paths.get(baseDirectory).toAbsolutePath();
-            Path fullPath = resolvedPath.toAbsolutePath();
-
-            System.out.println("Decoded File Path: " + decodedFilePath);
-            System.out.println("Full Path Resolved: " + fullPath);
-
-            if (!fullPath.startsWith(basePath)) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-            }
-
-            // Check if the file exists and is readable
-            if (!Files.exists(resolvedPath) || !Files.isReadable(resolvedPath)) {
+            if (resource.exists() && resource.isReadable()) {
+                return ResponseEntity.ok()
+                        .contentType(MediaType.APPLICATION_PDF)
+                        .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + filePath.getFileName() + "\"")
+                        .body(resource);
+            } else {
                 return ResponseEntity.notFound().build();
             }
-
-            // Load the file as a resource
-            Resource resource = new UrlResource(resolvedPath.toUri());
-            String contentType = Files.probeContentType(resolvedPath);
-
-            if (contentType == null) {
-                contentType = "application/octet-stream";
-            }
-
-            return ResponseEntity.ok()
-                    .contentType(MediaType.parseMediaType(contentType))
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resolvedPath.getFileName() + "\"")
-                    .body(resource);
 
         } catch (Exception e) {
             e.printStackTrace();
