@@ -11,9 +11,22 @@ import org.hibernate.proxy.HibernateProxy;
 import java.util.Objects;
 import java.util.Set;
 
+
+//CREATE TABLE IF NOT EXISTS pdf_files (
+//        id INTEGER PRIMARY KEY AUTOINCREMENT,
+//        filepath TEXT UNIQUE,
+//        filename TEXT,
+//        file_size INTEGER,
+//        created_time TEXT,
+//        modified_time TEXT,
+//        page_count INTEGER,
+//        title TEXT,
+//        author TEXT,
+//        last_updated TEXT
+//)
+
 @Getter
 @Setter
-@ToString
 @RequiredArgsConstructor
 @AllArgsConstructor
 @Entity

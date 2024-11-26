@@ -1,77 +1,75 @@
 package com.satoru.pdfadmin.controller;
 
-import com.satoru.pdfadmin.entity.PdfFile;
-import com.satoru.pdfadmin.repository.PdfFileRepository;
-import com.satoru.pdfadmin.service.PdfFileService;
-import com.satoru.pdfadmin.service.PdfNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
-@RestController()
-@RequestMapping("/file")
+@RestController
+@RequestMapping("/api/pdf")
 @CrossOrigin(origins = "http://localhost:3000")
-public class PdfFileController {
-    private final PdfFileService fileService;
-    private final PdfFileRepository pdfFileRepository;
+public class PdfController {
 
-    @Autowired
-    public PdfFileController(PdfFileService fileService, PdfFileRepository pdfFileRepository) {
-        this.fileService = fileService;
-        this.pdfFileRepository = pdfFileRepository;
-    }
+//    private final String baseDirectory = "E:\\Downs\\kat\\kath\\";
+    @Value("${file.upload.root-dir}")
+    private String baseDirectory;
 
-    // http://localhost:8080/file
     @GetMapping
-    public List<PdfFile> getAllFiles() {
-        return fileService.getAllFiles();
+    public ResponseEntity<Resource> getPdf(@RequestParam("file") String file) {
+        try {
+            // Decode the file path
+            String decodedFilePath = URLDecoder.decode(file, StandardCharsets.UTF_8);
+
+            // Ensure the file path is relative (remove leading '/')
+            if (decodedFilePath.startsWith("/")) {
+                decodedFilePath = decodedFilePath.substring(1);
+            }
+
+            // Construct the full path by resolving against the base directory
+            Path resolvedPath = Paths.get(baseDirectory).resolve(decodedFilePath).normalize();
+
+            // Ensure the resolved path is within the base directory for security
+            Path basePath = Paths.get(baseDirectory).toAbsolutePath();
+            Path fullPath = resolvedPath.toAbsolutePath();
+
+            System.out.println("Decoded File Path: " + decodedFilePath);
+            System.out.println("Full Path Resolved: " + fullPath);
+
+            if (!fullPath.startsWith(basePath)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+
+            // Check if the file exists and is readable
+            if (!Files.exists(resolvedPath) || !Files.isReadable(resolvedPath)) {
+                return ResponseEntity.notFound().build();
+            }
+
+            // Load the file as a resource
+            Resource resource = new UrlResource(resolvedPath.toUri());
+            String contentType = Files.probeContentType(resolvedPath);
+
+            if (contentType == null) {
+                contentType = "application/octet-stream";
+            }
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType(contentType))
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resolvedPath.getFileName() + "\"")
+                    .body(resource);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
-
-    // 2. GET - Fetch file by ID
-    // Endpoint: http://localhost:8080/file/{id}
-    @GetMapping("/{id}")
-    public PdfFile getFileById(@PathVariable Long id) throws PdfNotFoundException {
-        return fileService.getFileById(id);
-    }
-
-    // http://localhost:8080/file/after?date=2024-11-18%2015:32:27
-    @GetMapping("/after")
-    public List<PdfFile> getFilesCreatedAfter(@RequestParam("date") String date) {
-        return pdfFileRepository.findAllByCreatedAt(date);
-    }
-
-    // 4. POST - Create a new file
-    // Endpoint: http://localhost:8080/file
-    @PostMapping
-    public ResponseEntity<PdfFile> createFile(@RequestBody PdfFile pdfFile) {
-        PdfFile savedFile = pdfFileRepository.save(pdfFile);
-        return ResponseEntity.status(HttpStatus.CREATED).body(savedFile);
-    }
-
-    // 5. PUT - Update an existing file by ID
-    // Endpoint: http://localhost:8080/file/{id}
-    @PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<PdfFile> updateFile(@RequestBody PdfFile updatedFile) throws PdfNotFoundException {
-        PdfFile savedFile = fileService.updateFile(updatedFile);
-        return ResponseEntity.status(HttpStatus.ACCEPTED).body(savedFile);
-    }
-
-    // 6. DELETE - Delete a file by ID
-    // Endpoint: http://localhost:8080/file/{id}
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Object> deleteFile(@PathVariable Long id) {
-        System.out.println("Deleting.. : File " + id);
-        return pdfFileRepository.findById(id)
-                .map(file -> {
-                    pdfFileRepository.delete(file);
-                    return ResponseEntity.noContent().build();
-                })
-                .orElse(ResponseEntity.notFound().build());
-    }
-
-
 }
